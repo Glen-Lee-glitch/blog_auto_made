@@ -113,13 +113,22 @@ class GitAnalyzer:
             diff = commit.diff(commit.parents[0])
             for change in diff:
                 files_changed.append(change.a_path or change.b_path)
-                additions += change.stats.get('insertions', 0)
-                deletions += change.stats.get('deletions', 0)
+                # stats가 없는 경우 0으로 처리
+                try:
+                    additions += change.stats.get('insertions', 0)
+                    deletions += change.stats.get('deletions', 0)
+                except AttributeError:
+                    # stats 속성이 없는 경우
+                    pass
         else:
             # 최초 커밋인 경우
             for file_path in commit.stats.files.keys():
                 files_changed.append(file_path)
-            additions = sum(commit.stats.files.values())
+            # stats.files.values()는 dict이므로 안전하게 처리
+            try:
+                additions = sum(commit.stats.files.values())
+            except TypeError:
+                additions = 0
         
         return CommitInfo(
             hash=commit.hexsha[:8],
@@ -184,11 +193,19 @@ class GitAnalyzer:
             # diff 내용 추출
             diff_content = diff.diff.decode('utf-8', errors='ignore')
             
+            # stats 정보 추출 (안전하게)
+            try:
+                additions = diff.stats.get('insertions', 0)
+                deletions = diff.stats.get('deletions', 0)
+            except AttributeError:
+                additions = 0
+                deletions = 0
+            
             return FileChange(
                 file_path=file_path,
                 change_type=change_type,
-                additions=diff.stats.get('insertions', 0),
-                deletions=diff.stats.get('deletions', 0),
+                additions=additions,
+                deletions=deletions,
                 diff_content=diff_content
             )
             

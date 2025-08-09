@@ -11,7 +11,7 @@ from typing import List, Dict, Optional
 from datetime import datetime
 import openai
 from dotenv import load_dotenv
-from git_analyzer import CommitInfo, FileChange
+from .git_analyzer import CommitInfo, FileChange
 
 # 환경변수 로드
 load_dotenv()
@@ -166,7 +166,8 @@ class ContentGenerator:
 """
         
         try:
-            response = openai.ChatCompletion.create(
+            client = openai.OpenAI(api_key=self.api_key)
+            response = client.chat.completions.create(
                 model=self.model,
                 messages=[
                     {"role": "system", "content": "당신은 기술 블로그 작성을 도와주는 AI 어시스턴트입니다."},
@@ -219,7 +220,8 @@ class ContentGenerator:
 """
         
         try:
-            response = openai.ChatCompletion.create(
+            client = openai.OpenAI(api_key=self.api_key)
+            response = client.chat.completions.create(
                 model=self.model,
                 messages=[
                     {"role": "system", "content": "당신은 경험 많은 개발자이자 기술 블로그 작가입니다. Git 커밋 정보를 바탕으로 유익하고 읽기 쉬운 기술 블로그 포스트를 작성합니다."},
